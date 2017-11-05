@@ -9,7 +9,7 @@ import tensorflow as tf
 import numpy as np
 
 from common_fun import print_info
-from read_CNN_data import read_all_train_data
+from read_CNN_data import read_all_train_data,read_test_data
 def rot_data(x_data,idx):
     x_0 = x_data[idx]
     x_0_90 = x_0
@@ -51,7 +51,7 @@ def get_next_batch(x_data,y_data,batch_size = 24):
         y.append(y_data[idx])
         y.append(y_data[idx])
         
-        idx = idx + 100
+        idx = idx + 50 
         x_0,x_9,x_18,x_27 = rot_data(x_data,idx)
             
         x.append(x_0)
@@ -154,12 +154,43 @@ def train_cnn(x_all_data,y_all_data):
                     saver.save(sess,"./model/cnn.model",global_step=step)
                     break
             step += 1
-
+def test_cnn(x_data):
+    
+    output = create_cnn(3)
+    l = []
+    saver = tf.train.Saver()
+    #new_saver = tf.train.import_meta_graph("./model/cnn.model-470.meta") 
+    #saver = tf.train.Saver(tf.trainable_variables())
+    with tf.Session() as sess: 
+        
+        #new_saver.restore(sess,tf.train.latest_checkpoint('./model/')) 
+        #new_saver.restore(sess,"./model/cnn.model-470")                      
+        saver.restore(sess,"./model/cnn.model-470")
+        #all_vars = tf.trainable_variables()
+        #sess.run(tf.global_variables_initializer())
+        preject = tf.argmax(output,1)
+        for i in range(len(x_data)//24):
+            x_in = x_data[i*24:(i+1)*24]
+            x_in = np.array(x_in)
+            label = sess.run(preject,feed_dict={X:x_in,keep_prob:1})
+            l.append(label)            
+        #print(label)
+    return l
 if __name__ == '__main__':
-    x_data,y_data = read_all_train_data()
-    train = 1
+    #
+    train = 0
     if train == 1:
+        x_data,y_data = read_all_train_data()
         X = tf.placeholder(tf.float32,[24,15,15,360])
         Y = tf.placeholder(tf.float32,[24,3])
         keep_prob = tf.placeholder(tf.float32)
         train_cnn(x_data,y_data)
+    if train == 0:
+        x_data = read_test_data('E:/Imaging/ROI_test/test_roi_2_100.txt')
+        #x_in = x_data[:24]
+        #x_in = np.array(x_in)
+        tf.reset_default_graph()  
+        X = tf.placeholder(tf.float32,[24,15,15,360])
+        #Y = tf.placeholder(tf.float32,[24,3])
+        keep_prob = tf.placeholder(tf.float32)
+        l = test_cnn(x_data)
