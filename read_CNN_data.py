@@ -9,11 +9,11 @@ import numpy as np
 import sklearn.preprocessing as prep
 
 from common_fun import print_info
-
+isMean = True
 def read_signal_txt(file_name,row,col,channel):
     img = np.zeros((row,col,channel))
     band = 0
-    row = 0
+    r = 0
     #l = 0
     with open(file_name,'r') as file_open:
         #需要跳过的前几行        
@@ -28,18 +28,22 @@ def read_signal_txt(file_name,row,col,channel):
             line = line.strip().split('  ')
             #print(line)
             c = 0
+            
             for i in range(len(line)):                
                 if line[i] == '':
                     continue
-                img[row,c,band] = float(line[i])
+                img[r,c,band] = float(line[i])
                 c = c + 1
-            
-            band = band + 1
-            if band == channel:
-                band = 0
-                row = row + 1
+            r = r + 1
+            #band = band + 1
+            if r == row:
+                band = band + 1
+                r = 0
             #print(l)
             #l = l + 1
+    if isMean:
+        for i in range(channel):
+            img[:,:,i] = img[:,:,i] - img[:,:,i].mean()
     return img
             
 def read_all_train_data():
@@ -75,13 +79,13 @@ def rotate_data(x_data,y_data,central_around = 0,central = 0):
 #读取测试数据,返回的数据是list类型
 def read_test_data(file_in):
     print_info("start read test data...")
-    data = read_signal_txt(file_in,100,100)
+    data = read_signal_txt(file_in,108,108,224)
     print_info("end read test data...")
     test_data = []
     x,y,z = data.shape
-    for j in range(15,y+1):
-        for i in range(15,x+1):
-            test_cur = data[i-15:i,j-15:j,:]
+    for j in range(9,y+1):
+        for i in range(9,x+1):
+            test_cur = data[i-9:i,j-9:j,:]
             test_data.append(test_cur)
     #test_data = np.array(test_data)    
     return test_data
@@ -95,6 +99,7 @@ def stander_scale(x_train,x_test):
             
 if __name__ == '__main__':
     #read_signal_txt('E:/Imaging/CNNROI/15_0_1.txt')
-    x_data,y_data = read_all_train_data()
-    #test_data = read_test_data('E:/Imaging/ROI_test/test_roi_2_100.txt')
+    #x_data,y_data = read_all_train_data()‪E:\Imaging\CNNTest\test_108_aviris.img
+    test_data = read_test_data('E:/Imaging/CNNTest/test_108_aviris.txt')
+    img = read_signal_txt("E:/Imaging/CNNROI/9_0_1.txt",9,9,224)
             
