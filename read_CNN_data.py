@@ -9,7 +9,7 @@ import numpy as np
 import sklearn.preprocessing as prep
 
 from common_fun import print_info
-isMean = True
+isMean = False
 def read_signal_txt(file_name,row,col,channel):
     img = np.zeros((row,col,channel))
     band = 0
@@ -24,15 +24,14 @@ def read_signal_txt(file_name,row,col,channel):
                 continue
             if line == '\n':
                 continue
-            
             line = line.strip().split('  ')
             #print(line)
             c = 0
             
             for i in range(len(line)):                
                 if line[i] == '':
-                    continue
-                img[r,c,band] = float(line[i])
+                    continue                
+                img[r,c,band] = float(line[i])                
                 c = c + 1
             r = r + 1
             #band = band + 1
@@ -49,11 +48,11 @@ def read_signal_txt(file_name,row,col,channel):
 def read_all_train_data():
     x_data = []
     y_data = []
-    data_dir = ('E:/Imaging/CNNROI/9_%d_%d.txt')
+    data_dir = ('E:/Imaging/CNNROI/5_%d_%d.txt')
     for i in range(5):
-        for j in range(1,51):
+        for j in range(1,21):
             cur_txt = data_dir%(i,j)
-            cur_data = read_signal_txt(cur_txt,9,9,224)
+            cur_data = read_signal_txt(cur_txt,5,5,224)
             if i == 0:
                 t = [1,0,0,0,0]
             if i == 1:
@@ -70,7 +69,34 @@ def read_all_train_data():
     x_data = np.array(x_data,dtype = np.float32)
     y_data = np.array(y_data,dtype = np.float32)
     return x_data,y_data
-
+def read_train_data_split():
+    x_data = []
+    y_data = []
+    data_dir = ('E:/Imaging/CNNROI/5_%d_%d.txt')
+    for i in range(5):
+        for j in range(1,21):
+            cur_txt = data_dir%(i,j)
+            cur_data = read_signal_txt(cur_txt,5,5,224)
+            x,y,z = cur_data.shape
+            for ys in range(3,y+1):
+                for xs in range(3,x+1):
+                    c_data = cur_data[xs-3:xs,ys-3:ys,:]
+                    if i == 0:
+                        t = [1,0,0,0,0]
+                    if i == 1:
+                        t = [0,1,0,0,0]
+                    if i == 2:
+                        t = [0,0,1,0,0]
+                    if i == 3:
+                        t = [0,0,0,1,0]
+                    if i == 4:
+                        t = [0,0,0,0,1]
+                    y_data.append(t)
+                    x_data.append(c_data)
+    print_info("read done!")
+    x_data = np.array(x_data,dtype = np.float32)
+    y_data = np.array(y_data,dtype = np.float32)
+    return x_data,y_data
 #样本旋转，产生更多的样本
 #策略：central_around指以中心点为中心旋转四周，central是指以中心3*3旋转，每种方式产生3组数据
 def rotate_data(x_data,y_data,central_around = 0,central = 0):
@@ -99,7 +125,7 @@ def stander_scale(x_train,x_test):
             
 if __name__ == '__main__':
     #read_signal_txt('E:/Imaging/CNNROI/15_0_1.txt')
-    #x_data,y_data = read_all_train_data()‪E:\Imaging\CNNTest\test_108_aviris.img
-    test_data = read_test_data('E:/Imaging/CNNTest/test_108_aviris.txt')
-    img = read_signal_txt("E:/Imaging/CNNROI/9_0_1.txt",9,9,224)
+    x_data,y_data = read_all_train_data()#‪E:\Imaging\CNNTest\test_108_aviris.img
+    #test_data = read_test_data('E:/Imaging/CNNTest/test_108_aviris.txt')
+    #img = read_signal_txt("E:/Imaging/ROI_AVIRIS_test/test_roi_9.txt",400,400,4)
             
