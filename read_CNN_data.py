@@ -103,15 +103,15 @@ def rotate_data(x_data,y_data,central_around = 0,central = 0):
     pass
 
 #读取测试数据,返回的数据是list类型
-def read_test_data(file_in):
+def read_test_data(file_in,size):
     print_info("start read test data...")
-    data = read_signal_txt(file_in,108,108,224)
+    data = read_signal_txt(file_in,400,400,224)
     print_info("end read test data...")
     test_data = []
     x,y,z = data.shape
-    for j in range(9,y+1):
-        for i in range(9,x+1):
-            test_cur = data[i-9:i,j-9:j,:]
+    for j in range(size,y+1):
+        for i in range(size,x+1):
+            test_cur = data[i-size:i,j-size:j,:]
             test_data.append(test_cur)
     #test_data = np.array(test_data)    
     return test_data
@@ -125,7 +125,7 @@ def stander_scale(x_train,x_test):
             
 if __name__ == '__main__':
     #read_signal_txt('E:/Imaging/CNNROI/15_0_1.txt')
-    x_data,y_data = read_all_train_data()#‪E:\Imaging\CNNTest\test_108_aviris.img
-    #test_data = read_test_data('E:/Imaging/CNNTest/test_108_aviris.txt')
+    #x_data,y_data = read_all_train_data()#‪E:\Imaging\CNNTest\test_108_aviris.img
+    test_data = read_test_data('E:/Imaging/ROI_AVIRIS_test/test_roi_6_frm_envi.txt',3)
     #img = read_signal_txt("E:/Imaging/ROI_AVIRIS_test/test_roi_9.txt",400,400,4)
             
