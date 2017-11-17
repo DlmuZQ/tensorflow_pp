@@ -11,6 +11,8 @@ import numpy as np
 from common_fun import print_info
 from read_CNN_data import read_all_train_data,read_test_data
 
+step_offset = 20
+
 #卷积操作
 def conv_op(input_op,name,kh,kw,n_out,dh,dw,p):
     #获取输入特征数
@@ -106,7 +108,33 @@ def rot_data(x_data,idx):
         x_0_180[:,:,i] = np.rot90(x_0_180[:,:,i],2)
         x_0_270[:,:,i] = np.rot90(x_0_270[:,:,i],3)
     return x_0,x_0_90,x_0_180,x_0_270
-
+def get_next_batch_2(x_data,y_data,batch_size = 32):
+    x = []
+    y = []
+    for _ in range(batch_size):
+        idx = np.random.randint(0,step_offset)
+        #print("idx:",idx)
+        x.append(x_data[idx])
+        y.append(y_data[idx])
+        
+        idx = idx + step_offset
+        x.append(x_data[idx])
+        y.append(y_data[idx])
+        
+        idx = idx + step_offset
+        x.append(x_data[idx])
+        y.append(y_data[idx])
+        
+        idx = idx + step_offset
+        x.append(x_data[idx])
+        y.append(y_data[idx])
+        
+        idx = idx + step_offset
+        x.append(x_data[idx])
+        y.append(y_data[idx])
+    x = np.array(x)
+    y = np.array(y)
+    return x,y
 def get_next_batch(x_data,y_data,batch_size = 100):
     x = []
     y = []
@@ -231,6 +259,8 @@ def create_cnn():
     conv3 = tf.nn.dropout(conv3,keep_prob)
     print(conv3.get_shape().as_list())
     '''
+    
+    '''
     conv3_1 = conv_op(pool1,"conv3_1",kh = 3,kw = 3,n_out = 512,dh = 1,dw = 1,p = p)
     print(conv3_1.get_shape().as_list())
     conv3_2 = conv_op(conv3_1,"conv3_2",kh = 3,kw = 3,n_out = 512,dh = 1,dw = 1,p = p)
@@ -239,6 +269,7 @@ def create_cnn():
     print(conv3_3.get_shape().as_list())
     pool3 = mpool_op(conv3_3,name = "pool3",kh = 2,kw = 2,dh = 2,dw = 2)    
     print(pool3.get_shape().as_list())
+    '''
     
     #fully connect layer
     '''
@@ -255,9 +286,9 @@ def create_cnn():
     out = tf.add(tf.matmul(dense,w_out),b_out)
     print(out.get_shape().as_list())
     '''
-    shp = pool3.get_shape()
+    shp = pool2.get_shape()
     flattened_shape = shp[1].value * shp[2].value * shp[3].value
-    resh1 = tf.reshape(pool3,[-1,flattened_shape],name = "resh1")
+    resh1 = tf.reshape(pool2,[-1,flattened_shape],name = "resh1")
     print(resh1.get_shape().as_list())
     
     fc4 = fc_op(resh1,name = "fc4",n_out = 4096,p = p)
@@ -294,7 +325,7 @@ def train_cnn(x_all_data,y_all_data):
         
         step = 0
         while True:
-            batch_x,batch_y = get_next_batch(x_all_data,y_all_data)
+            batch_x,batch_y = get_next_batch_2(x_all_data,y_all_data)
             _,loss_ = sess.run([optimizer,loss],feed_dict = {X:batch_x,Y:batch_y,keep_prob:0.75})
             print(step,loss_)
             '''
@@ -308,8 +339,8 @@ def train_cnn(x_all_data,y_all_data):
             print("max_l",max_l)
             break
             '''
-            if step % 10 == 0:
-                batch_x_test,batch_y_test = get_next_batch(x_all_data,y_all_data)
+            if step % 10 == 0 and step != 0:
+                batch_x_test,batch_y_test = get_next_batch_2(x_all_data,y_all_data)
                 acc = sess.run(accuracy,feed_dict={X:batch_x_test,Y:batch_y_test,keep_prob:1.0})
                 print(step,acc)
                 if acc > 0.7:
@@ -341,14 +372,14 @@ if __name__ == '__main__':
     if train == 1:
         x_data,y_data = read_all_train_data()       
         
-        X = tf.placeholder(tf.float32,[100,9,9,224])
-        Y = tf.placeholder(tf.float32,[100,5])
+        X = tf.placeholder(tf.float32,[None,9,9,224])
+        Y = tf.placeholder(tf.float32,[None,5])
         
         keep_prob = tf.placeholder(tf.float32)
         train_cnn(x_data,y_data)
     if train == 0:
         x_data = read_test_data('E:/Imaging/CNNTest/test_108_aviris_2.txt')        
         tf.reset_default_graph()  
-        X = tf.placeholder(tf.float32,[100,9,9,224])        
+        X = tf.placeholder(tf.float32,[None,9,9,224])        
         keep_prob = tf.placeholder(tf.float32)
         l = test_cnn(x_data)    
